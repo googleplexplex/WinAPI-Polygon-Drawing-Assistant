@@ -8,7 +8,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void Game_Init();
 void Game_Main();
 void Game_Shitdown();
-void onMouseClick(HDC clickedWindowHDC, unsigned int x, unsigned int y);
+void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y);
 
 HINSTANCE hInstanceApp;
 HWND mainWindowHandle;
@@ -91,7 +91,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	//case WM_RBUTTONDOWN:
 	case WM_LBUTTONDOWN:
-		onMouseClick(GetDC(mainWindowHandle), LOWORD(lParam), HIWORD(lParam));
+		onMouseClick(GetDC(mainWindowHandle), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -102,6 +102,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 
+
+POINT* polygonPoints;
+unsigned short polygonPointsCount = 0;
 
 void Game_Init()
 {
@@ -119,7 +122,21 @@ void Game_Shitdown()
 }
 
 
-void onMouseClick(HDC clickedWindowHDC, unsigned int x, unsigned int y)
+constexpr unsigned short markerRadius = 20;
+constexpr COLORREF markerColor = RGB(0, 255, 0);
+const HBRUSH markerBrush = (HBRUSH)CreateSolidBrush(markerColor);
+void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	TextOut(clickedWindowHDC, x, y, "*click*", 7);
+	const HBRUSH oldBrush = (HBRUSH)SelectObject(clickedWindowHDC, markerBrush);
+
+	Ellipse(clickedWindowHDC, x - markerRadius / 2, y - markerRadius / 2, x + markerRadius / 2, y + markerRadius / 2);
+
+	SelectObject(clickedWindowHDC, oldBrush);
+
+
+	POINT* oldPoints = polygonPoints;
+	polygonPoints = new POINT[polygonPointsCount + 1];
+	memcpy(polygonPoints, oldPoints, sizeof(POINT) * polygonPointsCount);
+	polygonPoints[polygonPointsCount] = { x, y };
+	polygonPointsCount++;
 }
