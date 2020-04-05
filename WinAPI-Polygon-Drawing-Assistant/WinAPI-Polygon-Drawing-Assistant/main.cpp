@@ -8,12 +8,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void Game_Init();
 void Game_Main();
 void Game_Shitdown();
-void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y);
+
+void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
+void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
 void onPaint(HDC hdc, PAINTSTRUCT& ps);
+void onKeyPressed(unsigned int key);
+
+void clearWindow(HDC clearedWindowHDC);
+void inline refreshCanvas();
 
 HINSTANCE hInstanceApp;
 HWND mainWindowHWND;
 constexpr POINT screenSize = { 400, 300 };
+typedef enum appStateEnum
+{
+	startPage = 0,
+	drawPage,
+	endPage
+};
+appStateEnum appState;
+
+POINT* polygonPoints;
+unsigned short polygonPointsCount = 0;
+
+#include "startPage.hpp"
+#include "drawPage.hpp"
+#include "endPage.hpp"
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -92,9 +112,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		onPaint(hdc, ps);
 		EndPaint(hWnd, &ps);
 		return 0;
-	//case WM_RBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		onMouseRightButtonClick(GetDC(mainWindowHWND), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
+		break;
 	case WM_LBUTTONDOWN:
-		onMouseClick(GetDC(mainWindowHWND), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
+		onMouseLeftButtonClick(GetDC(mainWindowHWND), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
+		break;
+	case WM_KEYDOWN:
+		onKeyPressed((unsigned int)wParam);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -102,13 +127,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	default:
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
-}
-
-void setWindowCorrectSize()
-{
-	RECT consoleWindowRect = { 0 };
-	GetWindowRect(mainWindowHWND, &consoleWindowRect);
-	MoveWindow(mainWindowHWND, consoleWindowRect.left, consoleWindowRect.top, screenSize.x + 4, screenSize.y + 30, NULL);
 }
 
 void clearWindow(HDC clearedWindowHDC)
@@ -128,13 +146,17 @@ void inline refreshCanvas()
 	SendMessage(mainWindowHWND, WM_PAINT, NULL, NULL);
 }
 
+void setWindowCorrectSize()
+{
+	RECT consoleWindowRect = { 0 };
+	GetWindowRect(mainWindowHWND, &consoleWindowRect);
+	MoveWindow(mainWindowHWND, consoleWindowRect.left, consoleWindowRect.top, screenSize.x + 4, screenSize.y + 30, NULL);
+}
 
-POINT* polygonPoints;
-unsigned short polygonPointsCount = 0;
 
 void Game_Init()
 {
-	return;
+	appState = drawPage; //startPage;
 }
 
 void Game_Main()
@@ -148,39 +170,67 @@ void Game_Shitdown()
 }
 
 
-constexpr unsigned short markerRadius = 20;
-constexpr COLORREF markerColor = RGB(0, 255, 0);
-const HBRUSH markerBrush = (HBRUSH)CreateSolidBrush(markerColor);
-void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y)
+void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	POINT* oldPoints = polygonPoints;
-	polygonPoints = new POINT[polygonPointsCount + 1];
-	memcpy(polygonPoints, oldPoints, sizeof(POINT) * polygonPointsCount);
-	polygonPoints[polygonPointsCount] = { x, y };
-	polygonPointsCount++;
-
-	refreshCanvas();
+	switch (appState)
+	{
+	case startPage:
+		startPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
+		return;
+	case drawPage:
+		drawPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
+		return;
+	case endPage:
+		endPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
+		return;
+	}
 }
 
-constexpr COLORREF polygonsColor = RGB(0, 0, 255);
-const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
+void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
+{
+	switch (appState)
+	{
+	case startPage:
+		startPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
+		return;
+	case drawPage:
+		drawPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
+		return;
+	case endPage:
+		endPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
+		return;
+	}
+}
+
 void onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
-	clearWindow(paintInWindowHDC);
-
-	if (polygonPointsCount > 2)
+	switch (appState)
 	{
-		const HBRUSH oldBrush = (HBRUSH)SelectObject(paintInWindowHDC, polygonsBrush);
-
-		Polygon(paintInWindowHDC, polygonPoints, polygonPointsCount);
-
-		SelectObject(paintInWindowHDC, oldBrush);
+	case startPage:
+		startPage_onPaint(paintInWindowHDC, ps);
+		return;
+	case drawPage:
+		drawPage_onPaint(paintInWindowHDC, ps);
+		return;
+	case endPage:
+		endPage_onPaint(paintInWindowHDC, ps);
+		return;
 	}
+}
 
-	const HBRUSH oldBrush = (HBRUSH)SelectObject(paintInWindowHDC, markerBrush);
-	for (int i = 0; i < polygonPointsCount; i++)
+
+void onKeyPressed(unsigned int key)
+{
+	switch (appState)
 	{
-		Ellipse(paintInWindowHDC, polygonPoints[i].x - markerRadius / 2, polygonPoints[i].y - markerRadius / 2, polygonPoints[i].x + markerRadius / 2, polygonPoints[i].y + markerRadius / 2);
+	case startPage:
+		startPage_onKeyPressed(key);
+		return;
+	case drawPage:
+		drawPage_onKeyPressed(key);
+		return;
+	case endPage:
+		endPage_onKeyPressed(key);
+		return;
 	}
-	SelectObject(paintInWindowHDC, oldBrush);
 }
