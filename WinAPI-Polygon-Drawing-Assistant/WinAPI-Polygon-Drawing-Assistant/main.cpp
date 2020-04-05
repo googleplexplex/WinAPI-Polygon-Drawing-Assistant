@@ -9,9 +9,11 @@ void Game_Init();
 void Game_Main();
 void Game_Shitdown();
 void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y);
+void onPaint(HDC hdc, PAINTSTRUCT& ps);
 
 HINSTANCE hInstanceApp;
-HWND mainWindowHandle;
+HWND mainWindowHWND;
+constexpr POINT screenSize = { 400, 300 };
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -47,13 +49,13 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 		WINDOW_CLASS_NAME,
 		WINDOW_NAME,
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 400, 300,
+		0, 0, screenSize.x, screenSize.y,
 		NULL, NULL,
 		hInstance,
 		NULL)))
 		return 0;
 
-	mainWindowHandle = hwnd;
+	mainWindowHWND = hwnd;
 
 	Game_Init();
 
@@ -87,11 +89,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
+		onPaint(hdc, ps);
 		EndPaint(hWnd, &ps);
 		return 0;
 	//case WM_RBUTTONDOWN:
 	case WM_LBUTTONDOWN:
-		onMouseClick(GetDC(mainWindowHandle), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
+		onMouseClick(GetDC(mainWindowHWND), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -101,6 +104,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+void setWindowCorrectSize()
+{
+	RECT consoleWindowRect = { 0 };
+	GetWindowRect(mainWindowHWND, &consoleWindowRect);
+	MoveWindow(mainWindowHWND, consoleWindowRect.left, consoleWindowRect.top, screenSize.x + 4, screenSize.y + 30, NULL);
+}
+
+void clearWindow(HDC clearedWindowHDC)
+{
+	RECT consoleWindowRect = { 0 };
+	GetWindowRect(mainWindowHWND, &consoleWindowRect);
+	const HBRUSH oldBrush = (HBRUSH)SelectObject(clearedWindowHDC, (HBRUSH)CreateSolidBrush(RGB(0, 0, 0)));
+
+	Rectangle(clearedWindowHDC, consoleWindowRect.left, consoleWindowRect.top, consoleWindowRect.right, consoleWindowRect.bottom);
+	
+	SelectObject(clearedWindowHDC, oldBrush);
+}
+
+void inline refreshCanvas()
+{
+	InvalidateRect(mainWindowHWND, NULL, NULL);
+	SendMessage(mainWindowHWND, WM_PAINT, NULL, NULL);
+}
 
 
 POINT* polygonPoints;
@@ -113,7 +139,7 @@ void Game_Init()
 
 void Game_Main()
 {
-	return;
+	setWindowCorrectSize();
 }
 
 void Game_Shitdown()
@@ -127,16 +153,34 @@ constexpr COLORREF markerColor = RGB(0, 255, 0);
 const HBRUSH markerBrush = (HBRUSH)CreateSolidBrush(markerColor);
 void onMouseClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	const HBRUSH oldBrush = (HBRUSH)SelectObject(clickedWindowHDC, markerBrush);
-
-	Ellipse(clickedWindowHDC, x - markerRadius / 2, y - markerRadius / 2, x + markerRadius / 2, y + markerRadius / 2);
-
-	SelectObject(clickedWindowHDC, oldBrush);
-
-
 	POINT* oldPoints = polygonPoints;
 	polygonPoints = new POINT[polygonPointsCount + 1];
 	memcpy(polygonPoints, oldPoints, sizeof(POINT) * polygonPointsCount);
 	polygonPoints[polygonPointsCount] = { x, y };
 	polygonPointsCount++;
+
+	refreshCanvas();
+}
+
+constexpr COLORREF polygonsColor = RGB(0, 0, 255);
+const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
+void onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
+{
+	clearWindow(paintInWindowHDC);
+
+	if (polygonPointsCount > 2)
+	{
+		const HBRUSH oldBrush = (HBRUSH)SelectObject(paintInWindowHDC, polygonsBrush);
+
+		Polygon(paintInWindowHDC, polygonPoints, polygonPointsCount);
+
+		SelectObject(paintInWindowHDC, oldBrush);
+	}
+
+	const HBRUSH oldBrush = (HBRUSH)SelectObject(paintInWindowHDC, markerBrush);
+	for (int i = 0; i < polygonPointsCount; i++)
+	{
+		Ellipse(paintInWindowHDC, polygonPoints[i].x - markerRadius / 2, polygonPoints[i].y - markerRadius / 2, polygonPoints[i].x + markerRadius / 2, polygonPoints[i].y + markerRadius / 2);
+	}
+	SelectObject(paintInWindowHDC, oldBrush);
 }
