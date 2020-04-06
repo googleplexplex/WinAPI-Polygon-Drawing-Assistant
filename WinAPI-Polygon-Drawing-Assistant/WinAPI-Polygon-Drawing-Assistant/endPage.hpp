@@ -1,17 +1,25 @@
 #pragma once
 #include <iostream>
-typedef std::pair<const char*, unsigned int> string;
+#include <windows.h>
+#include <string>
 
-bool putInClipboard(string puttedString)
+std::string compiliedFigure;
+bool figureCompilied = false;
+
+inline char* getStringContent(std::string str)
+{
+	return &(str[0]);
+}
+bool putInClipboard(std::string puttedString)
 {
 	if (OpenClipboard(mainWindowHWND))//открываем буфер обмена
 	{
 		HGLOBAL hgBuffer;
 		char* chBuffer;
 		EmptyClipboard(); //очищаем буфер
-		hgBuffer = GlobalAlloc(GMEM_DDESHARE, puttedString.second + 1);//выделяем память
+		hgBuffer = GlobalAlloc(GMEM_DDESHARE, puttedString.length() + 1);//выделяем память
 		chBuffer = (char*)GlobalLock(hgBuffer); //блокируем память
-		strcpy(chBuffer, LPCSTR(puttedString.first));
+		strcpy(chBuffer, LPCSTR(getStringContent(puttedString)));
 		GlobalUnlock(hgBuffer);//разблокируем память
 		SetClipboardData(CF_TEXT, hgBuffer);//помещаем текст в буфер обмена
 		CloseClipboard(); //закрываем буфер обмена
@@ -19,25 +27,51 @@ bool putInClipboard(string puttedString)
 	} else
 		return false;
 }
-string compileFigureToCode()
+std::string compilePoint(POINT compiliedPoint)
 {
-	return { "HELLO CLIPBOARD", strlen("HELLO CLIPBOARD") }; //TEST
+	std::string result = "{ ";
+	result += std::to_string(compiliedPoint.x);
+	result += ", ";
+	result += std::to_string(compiliedPoint.x);
+	result += " }";
+	return result;
+}
+std::string compileFigureToCode()
+{
+	std::string prefics = "const POINT* polygonFigure = { ";
+	std::string betweenData = ", ";
+	std::string postfics = " };";
+
+	std::string result = prefics;
+	for (int i = 0; i < polygonPointsCount; i++)
+	{
+		result += compilePoint(polygonPoints[i]);
+		if(i != polygonPointsCount - 1)
+			result += betweenData;
+	}
+	result += postfics;
+
+	return result;
 }
 
 void endPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	putInClipboard(compileFigureToCode());
+	if (figureCompilied)
+		putInClipboard(compiliedFigure);
 }
 
 void endPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	putInClipboard(compileFigureToCode());
+	if(figureCompilied)
+		putInClipboard(compiliedFigure);
 }
 
 void endPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
 	TextOutWithDynamicLength(paintInWindowHDC, 10, 10, "B - Back to draw");
 	TextOutWithDynamicLength(paintInWindowHDC, screenSize.x / 2 - 75, screenSize.y - 50, "Press Any Key To Copy Result In Clipboard");
+	compiliedFigure = compileFigureToCode();
+	figureCompilied = true;
 }
 
 void endPage_onKeyPressed(unsigned int key)
@@ -46,5 +80,6 @@ void endPage_onKeyPressed(unsigned int key)
 	if (key == KB_CODE('b') || key == KB_CODE_BIG('B'))
 	{
 		setAppState(drawPage);
+		figureCompilied = false;
 	}
 }
