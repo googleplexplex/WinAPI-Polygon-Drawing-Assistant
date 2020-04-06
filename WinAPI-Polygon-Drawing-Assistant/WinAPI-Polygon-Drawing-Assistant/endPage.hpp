@@ -6,20 +6,17 @@
 std::string compiliedFigure;
 bool figureCompilied = false;
 
-inline char* getStringContent(std::string str)
+bool putInClipboard(std::string _puttedString)
 {
-	return &(str[0]);
-}
-bool putInClipboard(std::string puttedString)
-{
+	LPCSTR puttedString = _puttedString.c_str();
 	if (OpenClipboard(mainWindowHWND))//открываем буфер обмена
 	{
 		HGLOBAL hgBuffer;
 		char* chBuffer;
 		EmptyClipboard(); //очищаем буфер
-		hgBuffer = GlobalAlloc(GMEM_DDESHARE, puttedString.length() + 1);//выделяем память
+		hgBuffer = GlobalAlloc(GMEM_DDESHARE, _puttedString.length() + 1);//выделяем память
 		chBuffer = (char*)GlobalLock(hgBuffer); //блокируем память
-		strcpy(chBuffer, LPCSTR(getStringContent(puttedString)));
+		strcpy(chBuffer, LPCSTR(puttedString));
 		GlobalUnlock(hgBuffer);//разблокируем память
 		SetClipboardData(CF_TEXT, hgBuffer);//помещаем текст в буфер обмена
 		CloseClipboard(); //закрываем буфер обмена
@@ -38,7 +35,7 @@ std::string compilePoint(POINT compiliedPoint)
 }
 std::string compileFigureToCode()
 {
-	std::string prefics = "const POINT* polygonFigure = { ";
+	std::string prefics = "constexpr unsigned int polygonFigurePointsCount = " + std::to_string(polygonPointsCount) + std::string(";\nconst POINT polygonFigurePoints[polygonFigurePointsCount] = { ");
 	std::string betweenData = ", ";
 	std::string postfics = " };";
 
@@ -57,19 +54,19 @@ std::string compileFigureToCode()
 void endPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
 	if (figureCompilied)
-		putInClipboard(compiliedFigure);
+		putInClipboard(compiliedFigure.c_str());
 }
 
 void endPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
 	if(figureCompilied)
-		putInClipboard(compiliedFigure);
+		putInClipboard(compiliedFigure.c_str());
 }
 
 void endPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
 	TextOutWithDynamicLength(paintInWindowHDC, 10, 10, "B - Back to draw");
-	TextOutWithDynamicLength(paintInWindowHDC, screenSize.x / 2 - 75, screenSize.y - 50, "Press Any Key To Copy Result In Clipboard");
+	TextOutWithDynamicLength(paintInWindowHDC, 0, screenSize.y - 50, "Press Any Key To Copy Result In Clipboard");
 	compiliedFigure = compileFigureToCode();
 	figureCompilied = true;
 }
