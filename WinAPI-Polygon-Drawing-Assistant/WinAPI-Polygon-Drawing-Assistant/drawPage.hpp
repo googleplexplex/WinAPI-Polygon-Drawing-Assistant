@@ -24,8 +24,6 @@ constexpr COLORREF polygonsColor = RGB(0, 0, 255);
 const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
 void drawPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
-	clearWindow(paintInWindowHDC);
-
 	if (polygonPointsCount > 2)
 	{
 		const HBRUSH oldBrush = (HBRUSH)SelectObject(paintInWindowHDC, polygonsBrush);
@@ -45,5 +43,8 @@ void drawPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 
 void drawPage_onKeyPressed(unsigned int key)
 {
-
+	if (key == KB_CODE('f') || key == KB_CODE_BIG('F'))
+	{
+		setAppState(endPage);
+	}
 }

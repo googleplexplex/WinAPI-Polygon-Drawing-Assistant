@@ -3,6 +3,10 @@
 #define WINDOW_CLASS_NAME "WinAPI_Polygon_Drawing_Assistant"
 #define WINDOW_NAME "WinAPI Polygon Drawing Assistant"
 
+#define KB_CODE(charset) (0x41 + (charset - 'a'))
+#define KB_CODE_BIG(charset) (0x41 + (charset - 'A'))
+#define TextOutWithDynamicLength(hdc, x, y, str) TextOut(hdc, x, y, str, strlen(str))
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 void Game_Init();
@@ -26,14 +30,20 @@ typedef enum appStateEnum
 	drawPage,
 	endPage
 };
-appStateEnum appState;
+appStateEnum _appState;
+void setAppState(appStateEnum newAppState)
+{
+	_appState = newAppState;
+	clearWindow(GetDC(mainWindowHWND));
+	refreshCanvas();
+}
 
 POINT* polygonPoints;
 unsigned short polygonPointsCount = 0;
 
-#include "startPage.hpp"
-#include "drawPage.hpp"
 #include "endPage.hpp"
+#include "drawPage.hpp"
+#include "startPage.hpp"
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -156,7 +166,7 @@ void setWindowCorrectSize()
 
 void Game_Init()
 {
-	appState = drawPage; //startPage;
+	_appState = startPage;
 }
 
 void Game_Main()
@@ -172,7 +182,7 @@ void Game_Shitdown()
 
 void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	switch (appState)
+	switch (_appState)
 	{
 	case startPage:
 		startPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
@@ -188,7 +198,7 @@ void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 
 void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	switch (appState)
+	switch (_appState)
 	{
 	case startPage:
 		startPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
@@ -204,7 +214,8 @@ void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 
 void onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
-	switch (appState)
+	clearWindow(paintInWindowHDC);
+	switch (_appState)
 	{
 	case startPage:
 		startPage_onPaint(paintInWindowHDC, ps);
@@ -218,10 +229,9 @@ void onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 	}
 }
 
-
 void onKeyPressed(unsigned int key)
 {
-	switch (appState)
+	switch (_appState)
 	{
 	case startPage:
 		startPage_onKeyPressed(key);
