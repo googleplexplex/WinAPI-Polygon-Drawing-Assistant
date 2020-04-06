@@ -15,9 +15,24 @@ void drawPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 	refreshCanvas();
 }
 
+#define sqr(x) ((x)*(x))
 void drawPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	
+	for (int i = 0; i < polygonPointsCount; i++)
+	{
+		double rangeBetweenClickAndPoint = sqrt(sqr(x - polygonPoints[i].x) + sqr(y - polygonPoints[i].y));
+		if (rangeBetweenClickAndPoint < markerRadius)
+		{
+			POINT* oldPoints = polygonPoints;
+			polygonPoints = new POINT[polygonPointsCount - 1];
+			memcpy(polygonPoints, oldPoints, sizeof(POINT) * i);
+			memcpy(&polygonPoints[i], &oldPoints[i + 1], sizeof(POINT) * (polygonPointsCount - i - 1));
+			polygonPointsCount--;
+
+			refreshCanvas();
+			return;
+		}
+	}
 }
 
 constexpr COLORREF polygonsColor = RGB(0, 0, 255);
