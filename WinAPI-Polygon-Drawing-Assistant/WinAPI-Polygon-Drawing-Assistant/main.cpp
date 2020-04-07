@@ -27,23 +27,7 @@ HINSTANCE hInst;
 HWND mainWindowHWND;
 constexpr POINT screenSize = { 400, 300 };
 
-static HWND textBoxHWND;
-#define ID_TEXTBOX 1
-POINT textBoxPos = { 15, screenSize.y / 4 };
-POINT textBoxSize = { screenSize.x - 2 * textBoxPos.x, 150 };
-RECT textBoxRect = { textBoxPos.x, textBoxPos.y, textBoxPos.x + textBoxSize.x, textBoxPos.y + textBoxSize.y };
-
-static HWND backButtonHWND;
-#define ID_BACKBUTTON 2
-const char* backButtonContent = "Back To Draw";
-POINT backButtonSize = { 100, 30 };
-POINT backButtonPos = { screenSize.x - backButtonSize.x - 30, screenSize.y - backButtonSize.y - 30 };
-
-static HWND clipboardCopyButtonHWND;
-#define ID_CLIPBOARDCOPYBUTTON 3
-const char* clipboardCopyButtonContent = "Copy Result in Clipboard";
-POINT clipboardCopyButtonSize = { 200, 30 };
-POINT clipboardCopyButtonPos = { 30, screenSize.y - clipboardCopyButtonSize.y - 30 };
+#include "windowElementClass.hpp"
 
 typedef enum appStateEnum
 {

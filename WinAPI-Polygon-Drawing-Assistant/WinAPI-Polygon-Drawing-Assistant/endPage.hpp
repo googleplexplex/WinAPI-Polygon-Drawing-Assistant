@@ -6,6 +6,17 @@
 std::string compiliedFigure;
 bool figureCompilied = false;
 
+#define ID_TEXTBOX_OUTPUTRESULT 0
+#define ID_BUTTON_BACK 1
+#define ID_BUTTON_CLIPBOARDCOPY 2
+
+constexpr unsigned int windowElementsCount = 3;
+windowElementClass windowElements[windowElementsCount] = {
+	windowTextBoxClass("", (HMENU)ID_TEXTBOX_OUTPUTRESULT, { 15, screenSize.y / 4 }, { screenSize.x - 2 * 15, 150 }),
+	windowButtonClass("Back To Draw", (HMENU)ID_BUTTON_BACK, { screenSize.x - 100 - 30, screenSize.y - 30 - 30 }, { 100, 30 }),
+	windowButtonClass("Copy Result in Clipboard", (HMENU)ID_BUTTON_CLIPBOARDCOPY, { 30, screenSize.y - 30 - 30 }, { 200, 30 }) };
+
+
 bool inline pointInRect(RECT rect, POINT point)
 {
 	return ( rect.top < point.y &&
@@ -64,20 +75,8 @@ void endPage_onCalled()
 	compiliedFigure = compileFigureToCode();
 	figureCompilied = true;
 
-	textBoxHWND = CreateWindow("edit", compiliedFigure.c_str(),
-		SS_LEFT | WS_GROUP | WS_CHILD | WS_VISIBLE | ES_MULTILINE,
-		textBoxPos.x, textBoxPos.y, textBoxSize.x, textBoxSize.y,
-		mainWindowHWND, (HMENU)ID_TEXTBOX, hInst, NULL);
-
-	clipboardCopyButtonHWND = CreateWindow("button", "Copy Result in Clipboard",
-		WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-		clipboardCopyButtonPos.x, clipboardCopyButtonPos.y, clipboardCopyButtonSize.x, clipboardCopyButtonSize.y,
-		mainWindowHWND, (HMENU)ID_CLIPBOARDCOPYBUTTON, hInst, NULL);
-
-	backButtonHWND = CreateWindow("button", "Back to Draw",
-		WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
-		backButtonPos.x, backButtonPos.y, backButtonSize.x, backButtonSize.y,
-		mainWindowHWND, (HMENU)ID_BACKBUTTON, hInst, NULL);
+	createAllElements(windowElements, windowElementsCount);
+	SetWindowText(windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 }
 
 void endPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
@@ -93,7 +92,7 @@ void endPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 void endPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
 	TextOutCenter(paintInWindowHDC, 20, "Thanks to using");
-	TextOutCenter(paintInWindowHDC, textBoxPos.y - GetTextExtentPoint32Size("Figure points code:").y - 10, "Figure points code:");
+	TextOutCenter(paintInWindowHDC, windowElements[0].pos.y - GetTextExtentPoint32Size("Figure points code:").y - 10, "Figure points code:");
 }
 
 void endPage_onKeyPressed(unsigned int key)
@@ -105,20 +104,18 @@ void endPage_onCommandCatch(unsigned int idCatcher)
 {
 	switch (idCatcher)
 	{
-	case ID_TEXTBOX:
+	case ID_TEXTBOX_OUTPUTRESULT:
 		break;
-	case ID_BACKBUTTON:
+	case ID_BUTTON_BACK:
 		setAppState(drawPage);
 		figureCompilied = false;
-		DestroyWindow(textBoxHWND);
-		DestroyWindow(clipboardCopyButtonHWND);
-		DestroyWindow(backButtonHWND);
+		deleteAllElements(windowElements, windowElementsCount);
 		break;
-	case ID_CLIPBOARDCOPYBUTTON:
+	case ID_BUTTON_CLIPBOARDCOPY:
 		if (figureCompilied)
 		{
 			putInClipboard(compiliedFigure.c_str());
-			SetWindowText(mainWindowHWND, compiliedFigure.c_str());
+			SetWindowText(windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 		}
 		break;
 	}
