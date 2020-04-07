@@ -10,8 +10,8 @@ bool figureCompilied = false;
 #define ID_BUTTON_BACK 1
 #define ID_BUTTON_CLIPBOARDCOPY 2
 
-constexpr unsigned int windowElementsCount = 3;
-windowElementClass windowElements[windowElementsCount] = {
+constexpr unsigned int endPage_windowElementsCount = 3;
+windowElementClass endPage_windowElements[endPage_windowElementsCount] = {
 	windowTextBoxClass("", (HMENU)ID_TEXTBOX_OUTPUTRESULT, { 15, screenSize.y / 4 }, { screenSize.x - 2 * 15, 150 }),
 	windowButtonClass("Back To Draw", (HMENU)ID_BUTTON_BACK, { screenSize.x - 100 - 30, screenSize.y - 30 - 30 }, { 100, 30 }),
 	windowButtonClass("Copy Result in Clipboard", (HMENU)ID_BUTTON_CLIPBOARDCOPY, { 30, screenSize.y - 30 - 30 }, { 200, 30 }) };
@@ -75,8 +75,8 @@ void endPage_onCalled()
 	compiliedFigure = compileFigureToCode();
 	figureCompilied = true;
 
-	createAllElements(windowElements, windowElementsCount);
-	SetWindowText(windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
+	createAllElements(endPage_windowElements, endPage_windowElementsCount);
+	SetWindowText(endPage_windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 }
 
 void endPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
@@ -92,7 +92,7 @@ void endPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 void endPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
 	TextOutCenter(paintInWindowHDC, 20, "Thanks to using");
-	TextOutCenter(paintInWindowHDC, windowElements[0].pos.y - GetTextExtentPoint32Size("Figure points code:").y - 10, "Figure points code:");
+	TextOutCenter(paintInWindowHDC, endPage_windowElements[0].pos.y - GetTextExtentPoint32Size("Figure points code:").y - 10, "Figure points code:");
 }
 
 void endPage_onKeyPressed(unsigned int key)
@@ -109,13 +109,13 @@ void endPage_onCommandCatch(unsigned int idCatcher)
 	case ID_BUTTON_BACK:
 		setAppState(drawPage);
 		figureCompilied = false;
-		deleteAllElements(windowElements, windowElementsCount);
+		deleteAllElements(endPage_windowElements, endPage_windowElementsCount);
 		break;
 	case ID_BUTTON_CLIPBOARDCOPY:
 		if (figureCompilied)
 		{
 			putInClipboard(compiliedFigure.c_str());
-			SetWindowText(windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
+			SetWindowText(endPage_windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 		}
 		break;
 	}
