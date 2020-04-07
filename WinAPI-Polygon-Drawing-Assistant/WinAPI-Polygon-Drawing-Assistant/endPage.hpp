@@ -6,6 +6,14 @@
 std::string compiliedFigure;
 bool figureCompilied = false;
 
+bool inline pointInRect(RECT rect, POINT point)
+{
+	return ( rect.top < point.y &&
+		rect.left < point.x &&
+		rect.bottom > point.y &&
+		rect.right > point.x );
+}
+
 bool putInClipboard(std::string _puttedString)
 {
 	LPCSTR puttedString = _puttedString.c_str();
@@ -35,7 +43,7 @@ std::string compilePoint(POINT compiliedPoint)
 }
 std::string compileFigureToCode()
 {
-	std::string prefics = "constexpr unsigned int polygonFigurePointsCount = " + std::to_string(polygonPointsCount) + std::string(";\nconst POINT polygonFigurePoints[polygonFigurePointsCount] = { ");
+	std::string prefics = "constexpr unsigned int polygonFigurePointsCount = " + std::to_string(polygonPointsCount) + std::string(";\r\nconst POINT polygonFigurePoints[polygonFigurePointsCount] = { ");
 	std::string betweenData = ", ";
 	std::string postfics = " };";
 
@@ -51,32 +59,67 @@ std::string compileFigureToCode()
 	return result;
 }
 
+void endPage_onCalled()
+{
+	compiliedFigure = compileFigureToCode();
+	figureCompilied = true;
+
+	textBoxHWND = CreateWindow("edit", compiliedFigure.c_str(),
+		SS_LEFT | WS_GROUP | WS_CHILD | WS_VISIBLE | ES_MULTILINE,
+		textBoxPos.x, textBoxPos.y, textBoxSize.x, textBoxSize.y,
+		mainWindowHWND, (HMENU)ID_TEXTBOX, hInst, NULL);
+
+	clipboardCopyButtonHWND = CreateWindow("button", "Copy Result in Clipboard",
+		WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
+		clipboardCopyButtonPos.x, clipboardCopyButtonPos.y, clipboardCopyButtonSize.x, clipboardCopyButtonSize.y,
+		mainWindowHWND, (HMENU)ID_CLIPBOARDCOPYBUTTON, hInst, NULL);
+
+	backButtonHWND = CreateWindow("button", "Back to Draw",
+		WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON,
+		backButtonPos.x, backButtonPos.y, backButtonSize.x, backButtonSize.y,
+		mainWindowHWND, (HMENU)ID_BACKBUTTON, hInst, NULL);
+}
+
 void endPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	if (figureCompilied)
-		putInClipboard(compiliedFigure.c_str());
+	
 }
 
 void endPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
-	if(figureCompilied)
-		putInClipboard(compiliedFigure.c_str());
+	
 }
 
 void endPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
-	TextOutWithDynamicLength(paintInWindowHDC, 10, 10, "B - Back to draw");
-	TextOutWithDynamicLength(paintInWindowHDC, 0, screenSize.y - 50, "Press Any Key To Copy Result In Clipboard");
-	compiliedFigure = compileFigureToCode();
-	figureCompilied = true;
+	TextOutCenter(paintInWindowHDC, 20, "Thanks to using");
+	TextOutCenter(paintInWindowHDC, textBoxPos.y - GetTextExtentPoint32Size("Figure points code:").y - 10, "Figure points code:");
 }
 
 void endPage_onKeyPressed(unsigned int key)
 {
-	putInClipboard(compileFigureToCode());
-	if (key == KB_CODE('b') || key == KB_CODE_BIG('B'))
+	
+}
+
+void endPage_onCommandCatch(unsigned int idCatcher)
+{
+	switch (idCatcher)
 	{
+	case ID_TEXTBOX:
+		break;
+	case ID_BACKBUTTON:
 		setAppState(drawPage);
 		figureCompilied = false;
+		DestroyWindow(textBoxHWND);
+		DestroyWindow(clipboardCopyButtonHWND);
+		DestroyWindow(backButtonHWND);
+		break;
+	case ID_CLIPBOARDCOPYBUTTON:
+		if (figureCompilied)
+		{
+			putInClipboard(compiliedFigure.c_str());
+			SetWindowText(mainWindowHWND, compiliedFigure.c_str());
+		}
+		break;
 	}
 }

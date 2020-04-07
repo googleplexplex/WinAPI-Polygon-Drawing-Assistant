@@ -1,9 +1,13 @@
 #pragma once
 #include <Windows.h>
+#define sqr(x) ((x)*(x))
 
 constexpr unsigned short markerRadius = 20;
 constexpr COLORREF markerColor = RGB(0, 255, 0);
 const HBRUSH markerBrush = (HBRUSH)CreateSolidBrush(markerColor);
+constexpr COLORREF polygonsColor = RGB(0, 0, 255);
+const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
+
 void drawPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
 	POINT* oldPoints = polygonPoints;
@@ -15,7 +19,6 @@ void drawPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 	refreshCanvas();
 }
 
-#define sqr(x) ((x)*(x))
 void drawPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
 	for (int i = 0; i < polygonPointsCount; i++)
@@ -35,8 +38,6 @@ void drawPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 	}
 }
 
-constexpr COLORREF polygonsColor = RGB(0, 0, 255);
-const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
 void drawPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
 	if (polygonPointsCount > 2)
@@ -61,5 +62,11 @@ void drawPage_onKeyPressed(unsigned int key)
 	if (key == KB_CODE('f') || key == KB_CODE_BIG('F'))
 	{
 		setAppState(endPage);
+		endPage_onCalled();
 	}
+}
+
+void drawPage_onCommandCatch(unsigned int idCatcher)
+{
+
 }

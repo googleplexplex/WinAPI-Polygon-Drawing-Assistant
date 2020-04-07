@@ -1,4 +1,6 @@
-#include <Windows.h>
+#define STRICT
+#include <windows.h>
+
 
 #define WINDOW_CLASS_NAME "WinAPI_Polygon_Drawing_Assistant"
 #define WINDOW_NAME "WinAPI Polygon Drawing Assistant"
@@ -6,8 +8,7 @@
 #define KB_CODE(charset) (0x41 + (charset - 'a'))
 #define KB_CODE_BIG(charset) (0x41 + (charset - 'A'))
 #define TextOutWithDynamicLength(hdc, x, y, str) TextOut(hdc, x, y, str, strlen(str))
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#define TextOutCenter(hdc, y, str) TextOutWithDynamicLength(hdc, screenSize.x / 2 - (GetTextExtentPoint32Size(str).x) / 2, y, str);
 
 void Game_Init();
 void Game_Main();
@@ -17,13 +18,33 @@ void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
 void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
 void onPaint(HDC hdc, PAINTSTRUCT& ps);
 void onKeyPressed(unsigned int key);
+void onCommandCatch(unsigned int idCatcher);
 
 void clearWindow(HDC clearedWindowHDC);
 void inline refreshCanvas();
 
-HINSTANCE hInstanceApp;
+HINSTANCE hInst;
 HWND mainWindowHWND;
 constexpr POINT screenSize = { 400, 300 };
+
+static HWND textBoxHWND;
+#define ID_TEXTBOX 1
+POINT textBoxPos = { 15, screenSize.y / 4 };
+POINT textBoxSize = { screenSize.x - 2 * textBoxPos.x, 150 };
+RECT textBoxRect = { textBoxPos.x, textBoxPos.y, textBoxPos.x + textBoxSize.x, textBoxPos.y + textBoxSize.y };
+
+static HWND backButtonHWND;
+#define ID_BACKBUTTON 2
+const char* backButtonContent = "Back To Draw";
+POINT backButtonSize = { 100, 30 };
+POINT backButtonPos = { screenSize.x - backButtonSize.x - 30, screenSize.y - backButtonSize.y - 30 };
+
+static HWND clipboardCopyButtonHWND;
+#define ID_CLIPBOARDCOPYBUTTON 3
+const char* clipboardCopyButtonContent = "Copy Result in Clipboard";
+POINT clipboardCopyButtonSize = { 200, 30 };
+POINT clipboardCopyButtonPos = { 30, screenSize.y - clipboardCopyButtonSize.y - 30 };
+
 typedef enum appStateEnum
 {
 	startPage = 0,
@@ -38,6 +59,14 @@ void setAppState(appStateEnum newAppState)
 	refreshCanvas();
 }
 
+POINT GetTextExtentPoint32Size(const char* str)
+{
+	SIZE size;
+	GetTextExtentPoint32A(GetDC(mainWindowHWND), str, strlen(str), &size);
+	POINT resut = { size.cx, size.cy };
+	return resut;
+}
+
 POINT* polygonPoints;
 unsigned short polygonPointsCount = 0;
 
@@ -45,12 +74,26 @@ unsigned short polygonPointsCount = 0;
 #include "drawPage.hpp"
 #include "startPage.hpp"
 
+// Прототипы функций
+BOOL InitApp(HINSTANCE);
+LRESULT CALLBACK wWndProc(HWND, UINT, WPARAM, LPARAM);
+
+// Имя класса окна
+char const szClassName[] = "EditAppClass";
+
+// Заголовок окна
+char const szWindowTitle[] = "Edit Demo";
+
+// Идентификатор копии приложения
+
+
+#pragma argsused
+
 int APIENTRY wWinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
 	LPWSTR    lpCmdLine,
 	int       nCmdShow)
 {
-
 	WNDCLASSEX winClass;
 	HWND hwnd;
 	MSG msg;
@@ -59,7 +102,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 	winClass.cbSize = sizeof(WNDCLASSEX);
 
 	winClass.style = CS_DBLCLKS | CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
-	winClass.lpfnWndProc = WndProc;
+	winClass.lpfnWndProc = wWndProc;
 	winClass.cbClsExtra = 0;
 	winClass.cbWndExtra = 0;
 	winClass.hInstance = hInstance;
@@ -70,7 +113,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 	winClass.lpszClassName = WINDOW_CLASS_NAME;
 	winClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 
-	hInstanceApp = hInstance;
+	hInst = hInstance;
 
 	if (!RegisterClassEx(&winClass))
 		return 0;
@@ -89,26 +132,19 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
 	Game_Init();
 
-	while (true)
+	// Запускаем цикл обработки сообщений
+	while (GetMessage(&msg, 0, 0, 0))
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				break;
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 		Game_Main();
 	}
-
 	Game_Shitdown();
-
 	return msg.wParam;
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK
+wWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	PAINTSTRUCT ps;
 	HDC hdc;
@@ -117,10 +153,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		return 0;
+	case WM_SETFOCUS:
+		if (_appState == endPage)
+		{
+			HANDLE focusHandle = (HANDLE)wParam;
+			//SetFocus(textBoxHWND);
+			SetFocus(mainWindowHWND);
+		}
+		return 0;
 	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
+		hdc = BeginPaint(hwnd, &ps);
 		onPaint(hdc, ps);
-		EndPaint(hWnd, &ps);
+		EndPaint(hwnd, &ps);
 		return 0;
 	case WM_RBUTTONDOWN:
 		onMouseRightButtonClick(GetDC(mainWindowHWND), (LONG)LOWORD(lParam), (LONG)HIWORD(lParam));
@@ -131,12 +175,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN:
 		onKeyPressed((unsigned int)wParam);
 		break;
+	case WM_COMMAND:
+	{
+		onCommandCatch((unsigned int)wParam);
+		return 0;
+	}
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
 	default:
-		return DefWindowProc(hWnd, msg, wParam, lParam);
+		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
+	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 void clearWindow(HDC clearedWindowHDC)
@@ -146,7 +196,7 @@ void clearWindow(HDC clearedWindowHDC)
 	const HBRUSH oldBrush = (HBRUSH)SelectObject(clearedWindowHDC, (HBRUSH)CreateSolidBrush(RGB(0, 0, 0)));
 
 	Rectangle(clearedWindowHDC, consoleWindowRect.left, consoleWindowRect.top, consoleWindowRect.right, consoleWindowRect.bottom);
-	
+
 	SelectObject(clearedWindowHDC, oldBrush);
 }
 
@@ -241,6 +291,22 @@ void onKeyPressed(unsigned int key)
 		return;
 	case endPage:
 		endPage_onKeyPressed(key);
+		return;
+	}
+}
+
+void onCommandCatch(unsigned int idCatcher)
+{
+	switch (_appState)
+	{
+	case startPage:
+		startPage_onCommandCatch(idCatcher);
+		return;
+	case drawPage:
+		drawPage_onCommandCatch(idCatcher);
+		return;
+	case endPage:
+		endPage_onCommandCatch(idCatcher);
 		return;
 	}
 }
