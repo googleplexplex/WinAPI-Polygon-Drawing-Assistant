@@ -6,9 +6,9 @@
 std::string compiliedFigure;
 bool figureCompilied = false;
 
-#define ID_TEXTBOX_OUTPUTRESULT 0
-#define ID_BUTTON_BACK 1
-#define ID_BUTTON_CLIPBOARDCOPY 2
+#define ID_TEXTBOX_OUTPUTRESULT 2
+#define ID_BUTTON_BACK 3
+#define ID_BUTTON_CLIPBOARDCOPY 4
 
 constexpr unsigned int endPage_windowElementsCount = 3;
 windowElementClass endPage_windowElements[endPage_windowElementsCount] = {
@@ -117,6 +117,8 @@ void endPage_onCommandCatch(unsigned int idCatcher)
 			putInClipboard(compiliedFigure.c_str());
 			SetWindowText(endPage_windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 		}
+		break;
+	default:
 		break;
 	}
 }

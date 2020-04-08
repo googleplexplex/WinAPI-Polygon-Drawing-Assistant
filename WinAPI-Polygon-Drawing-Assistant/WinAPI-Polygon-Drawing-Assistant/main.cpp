@@ -201,6 +201,7 @@ void setWindowCorrectSize()
 void Game_Init()
 {
 	_appState = startPage;
+	startPage_onCalled();
 }
 
 void Game_Main()
