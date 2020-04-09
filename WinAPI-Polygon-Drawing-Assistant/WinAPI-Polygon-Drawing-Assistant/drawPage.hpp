@@ -8,6 +8,14 @@ const HBRUSH markerBrush = (HBRUSH)CreateSolidBrush(markerColor);
 constexpr COLORREF polygonsColor = RGB(0, 0, 255);
 const HBRUSH polygonsBrush = (HBRUSH)CreateSolidBrush(polygonsColor);
 
+constexpr unsigned int drawPage_windowElementsCount = 0;
+windowElementClass* drawPage_windowElements = NULL;
+
+void drawPage_onCalled()
+{
+
+}
+
 void drawPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 {
 	POINT* oldPoints = polygonPoints;
@@ -61,8 +69,7 @@ void drawPage_onKeyPressed(unsigned int key)
 {
 	if (key == KB_CODE('f') || key == KB_CODE_BIG('F'))
 	{
-		setAppState(endPage);
-		endPage_onCalled();
+		callPage(endPage);
 	}
 }
 

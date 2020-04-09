@@ -31,17 +31,14 @@ constexpr POINT screenSize = { 400, 300 };
 
 typedef enum appStateEnum
 {
-	startPage = 0,
+	null = 0,
+	startPage = 1,
+	setPage,
 	drawPage,
 	endPage
 };
-appStateEnum _appState;
-void setAppState(appStateEnum newAppState)
-{
-	_appState = newAppState;
-	clearWindow(GetDC(mainWindowHWND));
-	refreshCanvas();
-}
+appStateEnum _appState = null;
+void callPage(appStateEnum newPage);
 
 POINT GetTextExtentPoint32Size(const char* str)
 {
@@ -54,24 +51,54 @@ POINT GetTextExtentPoint32Size(const char* str)
 POINT* polygonPoints;
 unsigned short polygonPointsCount = 0;
 
+#include "settingsPage.hpp"
 #include "endPage.hpp"
 #include "drawPage.hpp"
 #include "startPage.hpp"
+void callPage(appStateEnum newPage)
+{
+	switch (_appState)
+	{
+	case startPage:
+		deleteAllElements(startPage_windowElements, startPage_windowElementsCount);
+		break;
+	case setPage:
+		deleteAllElements(setPage_windowElements, setPage_windowElementsCount);
+		break;
+	case drawPage:
+		deleteAllElements(drawPage_windowElements, drawPage_windowElementsCount);
+		break;
+	case endPage:
+		deleteAllElements(endPage_windowElements, endPage_windowElementsCount);
+		break;
+	default:
+		break;
+	}
+	_appState = newPage;
+	clearWindow(GetDC(mainWindowHWND));
+	refreshCanvas();
+	switch (newPage)
+	{
+	case startPage:
+		createAllElements(startPage_windowElements, startPage_windowElementsCount);
+		startPage_onCalled();
+		break;
+	case setPage:
+		createAllElements(setPage_windowElements, setPage_windowElementsCount);
+		setPage_onCalled();
+		break;
+	case drawPage:
+		createAllElements(drawPage_windowElements, drawPage_windowElementsCount);
+		drawPage_onCalled();
+		break;
+	case endPage:
+		createAllElements(endPage_windowElements, endPage_windowElementsCount);
+		endPage_onCalled();
+		break;
+	}
+}
 
-// Прототипы функций
-BOOL InitApp(HINSTANCE);
-LRESULT CALLBACK wWndProc(HWND, UINT, WPARAM, LPARAM);
-
-// Имя класса окна
-char const szClassName[] = "EditAppClass";
-
-// Заголовок окна
-char const szWindowTitle[] = "Edit Demo";
-
-// Идентификатор копии приложения
-
-
-#pragma argsused
+LRESULT CALLBACK wWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int APIENTRY wWinMain(HINSTANCE hInstance,
 	HINSTANCE hPrevInstance,
@@ -200,8 +227,7 @@ void setWindowCorrectSize()
 
 void Game_Init()
 {
-	_appState = startPage;
-	startPage_onCalled();
+	callPage(startPage);
 }
 
 void Game_Main()
@@ -222,6 +248,9 @@ void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 	case startPage:
 		startPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
 		return;
+	case setPage:
+		setPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
+		return;
 	case drawPage:
 		drawPage_onMouseLeftButtonClick(clickedWindowHDC, x, y);
 		return;
@@ -237,6 +266,9 @@ void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 	{
 	case startPage:
 		startPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
+		return;
+	case setPage:
+		setPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
 		return;
 	case drawPage:
 		drawPage_onMouseRightButtonClick(clickedWindowHDC, x, y);
@@ -255,6 +287,9 @@ void onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 	case startPage:
 		startPage_onPaint(paintInWindowHDC, ps);
 		return;
+	case setPage:
+		setPage_onPaint(paintInWindowHDC, ps);
+		return;
 	case drawPage:
 		drawPage_onPaint(paintInWindowHDC, ps);
 		return;
@@ -271,6 +306,9 @@ void onKeyPressed(unsigned int key)
 	case startPage:
 		startPage_onKeyPressed(key);
 		return;
+	case setPage:
+		setPage_onKeyPressed(key);
+		return;
 	case drawPage:
 		drawPage_onKeyPressed(key);
 		return;
@@ -286,6 +324,9 @@ void onCommandCatch(unsigned int idCatcher)
 	{
 	case startPage:
 		startPage_onCommandCatch(idCatcher);
+		return;
+	case setPage:
+		setPage_onCommandCatch(idCatcher);
 		return;
 	case drawPage:
 		drawPage_onCommandCatch(idCatcher);

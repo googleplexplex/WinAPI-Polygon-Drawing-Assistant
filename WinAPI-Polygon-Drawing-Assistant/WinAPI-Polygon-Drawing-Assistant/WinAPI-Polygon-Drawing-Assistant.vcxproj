@@ -120,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="drawPage.hpp" />
     <ClInclude Include="endPage.hpp" />
+    <ClInclude Include="settingsPage.hpp" />
     <ClInclude Include="startPage.hpp" />
     <ClInclude Include="windowElementClass.hpp" />
   </ItemGroup>

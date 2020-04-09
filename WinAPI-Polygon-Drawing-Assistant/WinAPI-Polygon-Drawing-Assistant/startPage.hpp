@@ -1,7 +1,9 @@
 #pragma once
+#include "windowElementClass.hpp"
+#include "settingsPage.hpp"
 
-#define ID_BUTTON_START 0
-#define ID_BUTTON_SETTINGS 1
+#define ID_BUTTON_START 3
+#define ID_BUTTON_SETTINGS 4
 
 constexpr unsigned int startPage_windowElementsCount = 2;
 windowElementClass startPage_windowElements[startPage_windowElementsCount] = {
@@ -10,7 +12,7 @@ windowElementClass startPage_windowElements[startPage_windowElementsCount] = {
 
 void startPage_onCalled()
 {
-	createAllElements(startPage_windowElements, startPage_windowElementsCount);
+	
 }
 
 void startPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
@@ -39,12 +41,10 @@ void startPage_onCommandCatch(unsigned int idCatcher)
 	switch (idCatcher)
 	{
 	case ID_BUTTON_START:
-		deleteAllElements(startPage_windowElements, startPage_windowElementsCount);
-		setAppState(drawPage);
+		callPage(drawPage);
 		break;
 	case ID_BUTTON_SETTINGS:
-		deleteAllElements(startPage_windowElements, startPage_windowElementsCount); //TODO
-		setAppState(drawPage);
+		callPage(setPage);
 		break;
 	default:
 		break;

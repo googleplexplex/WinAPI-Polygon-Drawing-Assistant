@@ -6,9 +6,9 @@
 std::string compiliedFigure;
 bool figureCompilied = false;
 
-#define ID_TEXTBOX_OUTPUTRESULT 2
-#define ID_BUTTON_BACK 3
-#define ID_BUTTON_CLIPBOARDCOPY 4
+#define ID_TEXTBOX_OUTPUTRESULT 0
+#define ID_BUTTON_BACK 1
+#define ID_BUTTON_CLIPBOARDCOPY 2
 
 constexpr unsigned int endPage_windowElementsCount = 3;
 windowElementClass endPage_windowElements[endPage_windowElementsCount] = {
@@ -75,7 +75,6 @@ void endPage_onCalled()
 	compiliedFigure = compileFigureToCode();
 	figureCompilied = true;
 
-	createAllElements(endPage_windowElements, endPage_windowElementsCount);
 	SetWindowText(endPage_windowElements[ID_TEXTBOX_OUTPUTRESULT].hwnd, compiliedFigure.c_str());
 }
 
@@ -107,9 +106,8 @@ void endPage_onCommandCatch(unsigned int idCatcher)
 	case ID_TEXTBOX_OUTPUTRESULT:
 		break;
 	case ID_BUTTON_BACK:
-		setAppState(drawPage);
 		figureCompilied = false;
-		deleteAllElements(endPage_windowElements, endPage_windowElementsCount);
+		callPage(drawPage);
 		break;
 	case ID_BUTTON_CLIPBOARDCOPY:
 		if (figureCompilied)
