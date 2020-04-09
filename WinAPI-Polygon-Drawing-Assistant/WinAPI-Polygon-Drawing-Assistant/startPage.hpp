@@ -36,7 +36,7 @@ void startPage_onKeyPressed(unsigned int key)
 	
 }
 
-void startPage_onCommandCatch(unsigned int idCatcher)
+void startPage_onCommandCatch(unsigned int idCatcher, unsigned int param)
 {
 	switch (idCatcher)
 	{

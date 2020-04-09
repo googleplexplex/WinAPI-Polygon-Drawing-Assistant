@@ -73,7 +73,7 @@ void drawPage_onKeyPressed(unsigned int key)
 	}
 }
 
-void drawPage_onCommandCatch(unsigned int idCatcher)
+void drawPage_onCommandCatch(unsigned int idCatcher, unsigned int param)
 {
 
 }

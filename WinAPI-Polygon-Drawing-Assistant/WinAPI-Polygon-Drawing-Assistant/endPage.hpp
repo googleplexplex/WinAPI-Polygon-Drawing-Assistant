@@ -99,7 +99,7 @@ void endPage_onKeyPressed(unsigned int key)
 	
 }
 
-void endPage_onCommandCatch(unsigned int idCatcher)
+void endPage_onCommandCatch(unsigned int idCatcher, unsigned int param)
 {
 	switch (idCatcher)
 	{

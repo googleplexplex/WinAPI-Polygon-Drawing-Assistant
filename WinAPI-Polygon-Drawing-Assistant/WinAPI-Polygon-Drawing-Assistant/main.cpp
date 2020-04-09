@@ -18,14 +18,14 @@ void onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
 void onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y);
 void onPaint(HDC hdc, PAINTSTRUCT& ps);
 void onKeyPressed(unsigned int key);
-void onCommandCatch(unsigned int idCatcher);
+void onCommandCatch(unsigned int idCatcher, unsigned int param);
 
 void clearWindow(HDC clearedWindowHDC);
 void inline refreshCanvas();
 
 HINSTANCE hInst;
 HWND mainWindowHWND;
-constexpr POINT screenSize = { 400, 300 };
+POINT screenSize = { 400, 300 };
 
 #include "windowElementClass.hpp"
 
@@ -187,13 +187,11 @@ wWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		onKeyPressed((unsigned int)wParam);
 		break;
 	case WM_COMMAND:
-	{
-		onCommandCatch((unsigned int)wParam);
-		return 0;
-	}
+		onCommandCatch((unsigned int)wParam, (unsigned int)lParam);
+		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
-		return 0;
+		break;
 	default:
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
@@ -318,21 +316,21 @@ void onKeyPressed(unsigned int key)
 	}
 }
 
-void onCommandCatch(unsigned int idCatcher)
+void onCommandCatch(unsigned int idCatcher, unsigned int param)
 {
 	switch (_appState)
 	{
 	case startPage:
-		startPage_onCommandCatch(idCatcher);
+		startPage_onCommandCatch(idCatcher, param);
 		return;
 	case setPage:
-		setPage_onCommandCatch(idCatcher);
+		setPage_onCommandCatch(idCatcher, param);
 		return;
 	case drawPage:
-		drawPage_onCommandCatch(idCatcher);
+		drawPage_onCommandCatch(idCatcher, param);
 		return;
 	case endPage:
-		endPage_onCommandCatch(idCatcher);
+		endPage_onCommandCatch(idCatcher, param);
 		return;
 	}
 }
