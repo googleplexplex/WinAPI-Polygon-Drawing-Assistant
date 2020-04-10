@@ -24,7 +24,7 @@ public:
 	windowElementClass() {}
 	void createElement()
 	{
-		hwnd = CreateWindow(className, content,
+		hwnd = CreateWindowEx(0L, className, content,
 			styles,
 			pos.x, pos.y, size.x, size.y,
 			mainWindowHWND, id, hInst, NULL);

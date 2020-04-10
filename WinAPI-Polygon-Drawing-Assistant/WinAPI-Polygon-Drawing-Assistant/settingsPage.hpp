@@ -10,8 +10,8 @@
 
 constexpr unsigned int setPage_windowElementsCount = 4;
 windowElementClass setPage_windowElements[setPage_windowElementsCount] = {
-	windowTextBoxClass("", (HMENU)ID_TEXTBOX_XSIZE, { screenSize.x / 3 * 2, screenSize.y / 4 }, { 100, 20 }),
-	windowTextBoxClass("", (HMENU)ID_TEXTBOX_YSIZE, { screenSize.x / 3 * 2, screenSize.y / 4 + 30 }, { 100, 20 }),
+	windowTextBoxClass("400", (HMENU)ID_TEXTBOX_XSIZE, { screenSize.x / 3 * 2, screenSize.y / 4 }, { 100, 20 }),
+	windowTextBoxClass("300", (HMENU)ID_TEXTBOX_YSIZE, { screenSize.x / 3 * 2, screenSize.y / 4 + 30 }, { 100, 20 }),
 	windowButtonClass("Apply", (HMENU)ID_BUTTON_APPLY, { screenSize.x - 100 - 30, screenSize.y - 30 - 30 }, { 100, 30 }),
 	windowButtonClass("Back", (HMENU)ID_BUTTON_BACK, { 30, screenSize.y - 30 - 30 }, { 100, 30 }) };
 
@@ -45,31 +45,27 @@ void setPage_onCommandCatch(unsigned int idCatcher, unsigned int param)
 {
 	char* textBoxXSizeContentStr = new char[5];
 	char* textBoxYSizeContentStr = new char[5];
-	unsigned int textBoxXSizeContent;
-	unsigned int textBoxYSizeContent;
+	LONG textBoxXSizeContent;
+	LONG textBoxYSizeContent;
+	DWORD lastError;
 	switch (idCatcher)
 	{
 	case ID_BUTTON_APPLY:
-		GetWindowTextA(setPage_windowElements[ID_TEXTBOX_XSIZE].hwnd, textBoxXSizeContentStr, 5);
-		GetWindowTextA(setPage_windowElements[ID_TEXTBOX_YSIZE].hwnd, textBoxYSizeContentStr, 5);
-		screenSize = { atoi(textBoxXSizeContentStr), atoi(textBoxYSizeContentStr) };
+		GetWindowText(GetWindow(mainWindowHWND, GW_CHILD), textBoxXSizeContentStr, 5);
+		GetWindowText(GetWindow(GetWindow(mainWindowHWND, GW_CHILD), GW_HWNDNEXT), textBoxYSizeContentStr, 5);
+
+		textBoxXSizeContent = atoi(textBoxXSizeContentStr);
+		textBoxYSizeContent = atoi(textBoxYSizeContentStr);
+		if (textBoxXSizeContent != NULL && textBoxYSizeContent != NULL
+			&& textBoxXSizeContent >= 300 && textBoxYSizeContent >= 300
+			&& textBoxXSizeContent <= 1920 && textBoxYSizeContent <= 1080)
+		{
+			screenSize = { textBoxXSizeContent, textBoxYSizeContent };
+			callPage(startPage);
+		}
+		break;
 	case ID_BUTTON_BACK:
 		callPage(startPage);
-		break;
-	case ID_TEXTBOX_XSIZE:
-		switch (param)
-		{
-		case EN_CHANGE:
-			GetWindowTextA(setPage_windowElements[ID_TEXTBOX_XSIZE].hwnd, textBoxXSizeContentStr, 5);
-			GetWindowTextA(setPage_windowElements[ID_TEXTBOX_YSIZE].hwnd, textBoxYSizeContentStr, 5);
-			textBoxXSizeContent = atoi(textBoxXSizeContentStr);
-			textBoxYSizeContent = atoi(textBoxYSizeContentStr);
-			if(textBoxXSizeContent != NULL && textBoxYSizeContent != NULL
-				&& textBoxXSizeContent > 300 && textBoxYSizeContent > 300
-				&& textBoxXSizeContent < 1920 && textBoxYSizeContent < 1080)
-			break;
-		}
-	case ID_TEXTBOX_YSIZE:
 		break;
 	}
 }
