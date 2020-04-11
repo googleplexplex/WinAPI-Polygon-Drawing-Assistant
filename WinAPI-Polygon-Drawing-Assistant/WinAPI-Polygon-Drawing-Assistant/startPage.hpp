@@ -10,9 +10,16 @@ windowElementClass startPage_windowElements[startPage_windowElementsCount] = {
 	windowButtonClass("Start Draw", (HMENU)ID_BUTTON_START, { screenSize.x - 100 - 30, screenSize.y - 30 - 30 }, { 100, 30 }),
 	windowButtonClass("Settings", (HMENU)ID_BUTTON_SETTINGS, { 30, screenSize.y - 30 - 30 }, { 100, 30 }) };
 
+void startPage_UpdateWindowElementsPosition()
+{
+	startPage_windowElements[ID_BUTTON_START].pos = { screenSize.x - 100 - 30, screenSize.y - 30 - 30 };
+	startPage_windowElements[ID_BUTTON_SETTINGS].pos = { 30, screenSize.y - 30 - 30 };
+}
+
+
 void startPage_onCalled()
 {
-	
+	startPage_UpdateWindowElementsPosition();
 }
 
 void startPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)

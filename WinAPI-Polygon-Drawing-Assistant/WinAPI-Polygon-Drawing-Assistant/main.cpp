@@ -80,20 +80,20 @@ void callPage(appStateEnum newPage)
 	switch (newPage)
 	{
 	case startPage:
-		createAllElements(startPage_windowElements, startPage_windowElementsCount);
 		startPage_onCalled();
+		createAllElements(startPage_windowElements, startPage_windowElementsCount);
 		break;
 	case setPage:
-		createAllElements(setPage_windowElements, setPage_windowElementsCount);
 		setPage_onCalled();
+		createAllElements(setPage_windowElements, setPage_windowElementsCount);
 		break;
 	case drawPage:
-		createAllElements(drawPage_windowElements, drawPage_windowElementsCount);
 		drawPage_onCalled();
+		createAllElements(drawPage_windowElements, drawPage_windowElementsCount);
 		break;
 	case endPage:
-		createAllElements(endPage_windowElements, endPage_windowElementsCount);
 		endPage_onCalled();
+		createAllElements(endPage_windowElements, endPage_windowElementsCount);
 		break;
 	}
 }
@@ -202,11 +202,8 @@ void clearWindow(HDC clearedWindowHDC)
 {
 	RECT consoleWindowRect = { 0 };
 	GetWindowRect(mainWindowHWND, &consoleWindowRect);
-	const HBRUSH oldBrush = (HBRUSH)SelectObject(clearedWindowHDC, (HBRUSH)CreateSolidBrush(RGB(0, 0, 0)));
 
-	Rectangle(clearedWindowHDC, consoleWindowRect.left, consoleWindowRect.top, consoleWindowRect.right, consoleWindowRect.bottom);
-
-	SelectObject(clearedWindowHDC, oldBrush);
+	RedrawWindow(mainWindowHWND, &consoleWindowRect, NULL, RDW_ERASE);
 }
 
 void inline refreshCanvas()

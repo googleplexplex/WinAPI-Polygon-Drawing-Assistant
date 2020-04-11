@@ -15,10 +15,17 @@ windowElementClass setPage_windowElements[setPage_windowElementsCount] = {
 	windowButtonClass("Apply", (HMENU)ID_BUTTON_APPLY, { screenSize.x - 100 - 30, screenSize.y - 30 - 30 }, { 100, 30 }),
 	windowButtonClass("Back", (HMENU)ID_BUTTON_BACK, { 30, screenSize.y - 30 - 30 }, { 100, 30 }) };
 
+void setPage_UpdateWindowElementsPosition()
+{
+	setPage_windowElements[ID_TEXTBOX_XSIZE].pos = { screenSize.x / 3 * 2, screenSize.y / 4 };
+	setPage_windowElements[ID_TEXTBOX_YSIZE].pos = { screenSize.x / 3 * 2, screenSize.y / 4 + 30 };
+	setPage_windowElements[ID_BUTTON_BACK].pos = { screenSize.x - 100 - 30, screenSize.y - 30 - 30 };
+	setPage_windowElements[ID_BUTTON_APPLY].pos = { 30, screenSize.y - 30 - 30 };
+}
 
 void setPage_onCalled()
 {
-	
+	setPage_UpdateWindowElementsPosition();
 }
 
 void setPage_onMouseLeftButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
@@ -33,7 +40,8 @@ void setPage_onMouseRightButtonClick(HDC clickedWindowHDC, LONG x, LONG y)
 
 void setPage_onPaint(HDC paintInWindowHDC, PAINTSTRUCT& ps)
 {
-	
+	TextOutA(paintInWindowHDC, 30, setPage_windowElements[ID_TEXTBOX_XSIZE].pos.y, "Draw window size X:", strlen("Draw window size X:"));
+	TextOutA(paintInWindowHDC, 30, setPage_windowElements[ID_TEXTBOX_YSIZE].pos.y, "Draw window size Y:", strlen("Draw window size Y:"));
 }
 
 void setPage_onKeyPressed(unsigned int key)
